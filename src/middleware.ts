@@ -13,29 +13,8 @@ import type { NextRequest } from 'next/server';
 // Routes that require authentication
 const PROTECTED_ROUTES = ['/dashboard', '/backups', '/schedules', '/settings'];
 
+// TEMPORARY: Bypass all authentication checks for development
 export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-
-  // Check if user is authenticated by looking for auth token
-  const token = request.cookies.get('authToken')?.value;
-
-  // If user is trying to access a protected route without token
-  if (PROTECTED_ROUTES.some((route) => pathname.startsWith(route))) {
-    if (!token) {
-      // Redirect to login
-      const loginUrl = new URL('/login', request.url);
-      return NextResponse.redirect(loginUrl);
-    }
-  }
-
-  // If user is logged in and trying to access auth pages, redirect to dashboard
-  if (pathname.startsWith('/login') || pathname.startsWith('/register')) {
-    if (token) {
-      const dashboardUrl = new URL('/dashboard', request.url);
-      return NextResponse.redirect(dashboardUrl);
-    }
-  }
-
   return NextResponse.next();
 }
 

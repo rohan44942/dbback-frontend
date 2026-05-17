@@ -11,10 +11,31 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 // Routes that require authentication
-const PROTECTED_ROUTES = ['/dashboard', '/backups', '/schedules', '/settings'];
+const PROTECTED_ROUTES = ['/dashboard'];
+const AUTH_ROUTES = ['/login', '/register'];
 
-// TEMPORARY: Bypass all authentication checks for development
 export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const authToken = request.cookies.get('authToken')?.value;
+  const isProtectedRoute = PROTECTED_ROUTES.some((route) =>
+    pathname.startsWith(route)
+  );
+  const isAuthRoute = AUTH_ROUTES.includes(pathname);
+
+  if (isProtectedRoute && !authToken) {
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = '/login';
+    loginUrl.searchParams.set('redirect', pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  if (isAuthRoute && authToken) {
+    const dashboardUrl = request.nextUrl.clone();
+    dashboardUrl.pathname = '/dashboard';
+    dashboardUrl.search = '';
+    return NextResponse.redirect(dashboardUrl);
+  }
+
   return NextResponse.next();
 }
 

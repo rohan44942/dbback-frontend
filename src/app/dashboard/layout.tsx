@@ -78,14 +78,14 @@ export default function DashboardLayout({
           </Link>
         </nav>
 
-        <div className="absolute bottom-6 left-6 right-6 space-y-4">
+        <div className="bottom-6 left-6 right-6 space-y-4">
           <div className="border-t border-gray-700 pt-4">
             <p className="text-sm text-gray-400">Logged in as</p>
             <p className="text-sm font-medium truncate">{user?.email}</p>
           </div>
           <button
             onClick={handleLogout}
-            className="w-full px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors text-sm"
+            className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors text-sm"
           >
             Logout
           </button>

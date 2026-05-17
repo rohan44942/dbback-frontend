@@ -68,8 +68,8 @@ export const useAuthStore = create<AuthStore>()(
           try {
             const response = await authService.login({ email, password });
             
-            // Store token in localStorage
             localStorage.setItem('authToken', response.token);
+            setAuthCookie(response.token, response.expiresAt);
             
             set({
               user: {
@@ -103,6 +103,7 @@ export const useAuthStore = create<AuthStore>()(
             });
             
             localStorage.setItem('authToken', response.token);
+            setAuthCookie(response.token, response.expiresAt);
             
             set({
               user: {
@@ -131,6 +132,7 @@ export const useAuthStore = create<AuthStore>()(
           try {
             await authService.logout();
             localStorage.removeItem('authToken');
+            clearAuthCookie();
             set({
               user: null,
               isAuthenticated: false,
@@ -154,3 +156,16 @@ export const useAuthStore = create<AuthStore>()(
     )
   )
 );
+
+function setAuthCookie(token: string, expiresAt: number) {
+  document.cookie = [
+    `authToken=${encodeURIComponent(token)}`,
+    'Path=/',
+    `Expires=${new Date(expiresAt).toUTCString()}`,
+    'SameSite=Strict',
+  ].join('; ');
+}
+
+function clearAuthCookie() {
+  document.cookie = 'authToken=; Path=/; Max-Age=0; SameSite=Strict';
+}

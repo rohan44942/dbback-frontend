@@ -58,7 +58,7 @@ export default function BackupsPage() {
             {isLoading && backups.length === 0 ? (
               <tr>
                 <td className="px-4 py-8 text-center text-gray-500" colSpan={5}>
-                  Loading backups...
+                  Loading backups....
                 </td>
               </tr>
             ) : backups.length === 0 ? (

@@ -21,6 +21,7 @@ export function middleware(request: NextRequest) {
     pathname.startsWith(route)
   );
   
+  
   const isAuthRoute = AUTH_ROUTES.includes(pathname);
 
   if (isProtectedRoute && !authToken) {

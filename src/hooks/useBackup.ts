@@ -1,7 +1,5 @@
 /**
  * useBackup Hook
- * 
- * Provides access to backup state and actions
  */
 
 import { useBackupStore } from '@/store/backupStore';
@@ -15,6 +13,8 @@ export function useBackup() {
     fetchBackups,
     addBackup,
     removeBackup,
+    downloadBackup,
+    restoreBackup,
     fetchSchedules,
     addSchedule,
     updateSchedule,
@@ -23,16 +23,15 @@ export function useBackup() {
   } = useBackupStore();
 
   return {
-    // State
     backups,
     schedules,
     isLoading,
     error,
-
-    // Actions
     fetchBackups,
     addBackup,
     removeBackup,
+    downloadBackup,
+    restoreBackup,
     fetchSchedules,
     addSchedule,
     updateSchedule,

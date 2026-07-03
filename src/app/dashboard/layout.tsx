@@ -1,18 +1,10 @@
-/**
- * Dashboard Layout
- * 
- * This layout wraps all dashboard routes.
- * It includes the navigation sidebar and header.
- * 
- * Note: This is a protected route - users must be logged in to see this.
- */
-
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
+import { useAuthStore } from '@/store/authStore';
 
 export default function DashboardLayout({
   children,
@@ -21,13 +13,25 @@ export default function DashboardLayout({
 }) {
   const router = useRouter();
   const { user, isAuthenticated, logout } = useAuth();
+  const [hydrated, setHydrated] = useState(false);
 
-  // Client-side authentication check
   useEffect(() => {
-    if (!isAuthenticated) {
+    const unsub = useAuthStore.persist.onFinishHydration(() => {
+      setHydrated(true);
+    });
+    setHydrated(useAuthStore.persist.hasHydrated());
+    return unsub;
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    const hasCookie =
+      typeof document !== 'undefined' &&
+      document.cookie.split(';').some((c) => c.trim().startsWith('authToken='));
+    if (!isAuthenticated && !hasCookie) {
       router.push('/login');
     }
-  }, [isAuthenticated, router]);
+  }, [hydrated, isAuthenticated, router]);
 
   const handleLogout = async () => {
     try {
@@ -38,13 +42,16 @@ export default function DashboardLayout({
     }
   };
 
-  if (!isAuthenticated) {
-    return null; // or a loading spinner
+  if (!hydrated || !isAuthenticated) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-gray-100 text-gray-600">
+        Loading...
+      </div>
+    );
   }
 
   return (
     <div className="flex h-screen bg-gray-100">
-      {/* Sidebar */}
       <aside className="w-64 bg-gray-900 text-white p-6">
         <div className="mb-8">
           <h2 className="text-2xl font-bold">DBBack</h2>
@@ -56,25 +63,25 @@ export default function DashboardLayout({
             href="/dashboard"
             className="block px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors"
           >
-            📊 Overview
+            Overview
           </Link>
           <Link
             href="/dashboard/backups"
             className="block px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors"
           >
-            💾 Backups
+            Backups
           </Link>
           <Link
             href="/dashboard/schedules"
             className="block px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors"
           >
-            ⏱️ Schedules
+            Schedules
           </Link>
           <Link
             href="/dashboard/settings"
             className="block px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors"
           >
-            ⚙️ Settings
+            Settings
           </Link>
         </nav>
 
@@ -92,9 +99,7 @@ export default function DashboardLayout({
         </div>
       </aside>
 
-      {/* Main Content */}
       <main className="flex-1 overflow-auto">
-        {/* Top Header */}
         <header className="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-900">
             Welcome, {user?.name}!
@@ -109,7 +114,6 @@ export default function DashboardLayout({
           </div>
         </header>
 
-        {/* Page Content */}
         <div className="p-8">{children}</div>
       </main>
     </div>

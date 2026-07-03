@@ -7,23 +7,21 @@
 
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import type { BackupSchedule, BackupState } from '@/types/backup';
+import type { BackupInput, BackupState, ScheduleInput } from '@/types/backup';
 import { backupService, scheduleService } from '@/lib/api/backup-service';
 
 interface BackupStore extends BackupState {
   // Backup actions
   fetchBackups: (page?: number, pageSize?: number) => Promise<void>;
-  addBackup: (name: string) => Promise<void>;
+  addBackup: (data: BackupInput) => Promise<void>;
   removeBackup: (id: string) => Promise<void>;
+  downloadBackup: (id: string, name: string) => Promise<void>;
+  restoreBackup: (id: string, target: string) => Promise<void>;
 
   // Schedule actions
   fetchSchedules: () => Promise<void>;
-  addSchedule: (
-    name: string,
-    frequency: 'daily' | 'weekly' | 'monthly',
-    time: string
-  ) => Promise<void>;
-  updateSchedule: (id: string, data: Partial<BackupSchedule>) => Promise<void>;
+  addSchedule: (data: ScheduleInput) => Promise<void>;
+  updateSchedule: (id: string, data: ScheduleInput) => Promise<void>;
   removeSchedule: (id: string) => Promise<void>;
 
   // Utilities
@@ -53,10 +51,10 @@ export const useBackupStore = create<BackupStore>()(
       }
     },
 
-    addBackup: async (name: string) => {
+    addBackup: async (data) => {
       set({ isLoading: true, error: null });
       try {
-        const backup = await backupService.createBackup(name);
+        const backup = await backupService.createBackup(data);
         const state = get();
         set({
           backups: [backup, ...state.backups],
@@ -87,6 +85,40 @@ export const useBackupStore = create<BackupStore>()(
       }
     },
 
+    downloadBackup: async (id: string, name: string) => {
+      set({ isLoading: true, error: null });
+      try {
+        const blob = await backupService.downloadBackup(id);
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${name || 'backup'}.gz`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+        set({ isLoading: false });
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : 'Failed to download backup';
+        set({ error: errorMessage, isLoading: false });
+        throw error;
+      }
+    },
+
+    restoreBackup: async (id: string, target: string) => {
+      set({ isLoading: true, error: null });
+      try {
+        await backupService.restoreBackup(id, target);
+        set({ isLoading: false });
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : 'Failed to restore backup';
+        set({ error: errorMessage, isLoading: false });
+        throw error;
+      }
+    },
+
     // Schedule actions
     fetchSchedules: async () => {
       set({ isLoading: true, error: null });
@@ -101,14 +133,10 @@ export const useBackupStore = create<BackupStore>()(
       }
     },
 
-    addSchedule: async (name, frequency, time) => {
+    addSchedule: async (data) => {
       set({ isLoading: true, error: null });
       try {
-        const schedule = await scheduleService.createSchedule(
-          name,
-          frequency,
-          time
-        );
+        const schedule = await scheduleService.createSchedule(data);
         const state = get();
         set({
           schedules: [...state.schedules, schedule],

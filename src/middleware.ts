@@ -33,7 +33,6 @@ export function middleware(request: NextRequest) {
 
   
   if (isAuthRoute && authToken) {
-    
     const dashboardUrl = request.nextUrl.clone();
     dashboardUrl.pathname = '/dashboard';
     dashboardUrl.search = '';

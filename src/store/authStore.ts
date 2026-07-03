@@ -158,11 +158,16 @@ export const useAuthStore = create<AuthStore>()(
 );
 
 function setAuthCookie(token: string, expiresAt: number) {
+  const secure =
+    typeof window !== 'undefined' && window.location.protocol === 'https:'
+      ? '; Secure'
+      : '';
   document.cookie = [
     `authToken=${encodeURIComponent(token)}`,
     'Path=/',
     `Expires=${new Date(expiresAt).toUTCString()}`,
     'SameSite=Strict',
+    secure,
   ].join('; ');
 }
 

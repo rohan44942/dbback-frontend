@@ -20,6 +20,7 @@ export const API_ENDPOINTS = {
     GET: (id: string) => `/backups/${id}`,
     DELETE: (id: string) => `/backups/${id}`,
     DOWNLOAD: (id: string) => `/backups/${id}/download`,
+    RESTORE: (id: string) => `/backups/${id}/restore`,
   },
   SCHEDULES: {
     LIST: '/schedules',

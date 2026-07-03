@@ -1,42 +1,32 @@
-/**
- * Login Page
- * 
- * This page demonstrates:
- * - Using client components for interactivity
- * - Composing smaller components together
- * - Using custom hooks for logic
- * - Proper error handling
- */
-
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { Suspense, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { LoginForm } from '@/components/auth/LoginForm';
 import { useAuth } from '@/hooks/useAuth';
 import type { LoginFormData } from '@/lib/validators/auth';
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get('redirect') || '/dashboard';
   const { login, isLoading, error, clearError, isAuthenticated } = useAuth();
   const [localError, setLocalError] = useState<string | null>(null);
 
-  // Redirect if already authenticated
   React.useEffect(() => {
     if (isAuthenticated) {
-      router.push('/dashboard');
+      router.push(redirectTo);
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, router, redirectTo]);
 
   const handleLogin = async (data: LoginFormData) => {
     try {
       setLocalError(null);
       await login(data.email, data.password);
-      // Note: Redirect happens via useEffect watching isAuthenticated
-    } catch (error) {
+    } catch (err) {
       const message =
-        error instanceof Error ? error.message : 'Login failed. Please try again.';
+        err instanceof Error ? err.message : 'Login failed. Please try again.';
       setLocalError(message);
     }
   };
@@ -74,12 +64,21 @@ export default function LoginPage() {
             </p>
           </div>
         </div>
-
-        {/* Footer with info */}
-        <div className="mt-8 text-center text-gray-600 text-sm">
-          <p>Secure backup management for your databases</p>
-        </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center text-gray-600">
+          Loading...
+        </div>
+      }
+    >
+      <LoginContent />
+    </Suspense>
   );
 }

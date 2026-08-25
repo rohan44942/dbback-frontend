@@ -4,6 +4,10 @@ import React, { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { LoginForm } from '@/components/auth/LoginForm';
+import {
+  AuthDivider,
+  GoogleSignInButton,
+} from '@/components/auth/GoogleSignInButton';
 import { useAuth } from '@/hooks/useAuth';
 import type { LoginFormData } from '@/lib/validators/auth';
 
@@ -11,7 +15,14 @@ function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirect') || '/dashboard';
-  const { login, isLoading, error, clearError, isAuthenticated } = useAuth();
+  const {
+    login,
+    loginWithGoogle,
+    isLoading,
+    error,
+    clearError,
+    isAuthenticated,
+  } = useAuth();
   const [localError, setLocalError] = useState<string | null>(null);
 
   React.useEffect(() => {
@@ -31,6 +42,19 @@ function LoginContent() {
     }
   };
 
+  const handleGoogle = async (credential: string) => {
+    try {
+      setLocalError(null);
+      await loginWithGoogle(credential);
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : 'Google sign-in failed. Please try again.';
+      setLocalError(message);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
       <div className="w-full max-w-md">
@@ -41,6 +65,13 @@ function LoginContent() {
           <p className="text-center text-gray-600 mb-8">
             Backup Management System
           </p>
+
+          <GoogleSignInButton
+            onSuccess={handleGoogle}
+            onError={setLocalError}
+            disabled={isLoading}
+          />
+          <AuthDivider />
 
           <LoginForm
             onSubmit={handleLogin}

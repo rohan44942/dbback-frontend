@@ -8,7 +8,7 @@
 
 import { apiClient } from './client';
 import { API_ENDPOINTS } from './endpoints';
-import type { LoginRequest, LoginResponse, RegisterRequest } from '@/types/auth';
+import type { LoginRequest, LoginResponse, RegisterRequest, GoogleAuthRequest } from '@/types/auth';
 
 /**
  * Interface for Auth Service
@@ -17,6 +17,7 @@ import type { LoginRequest, LoginResponse, RegisterRequest } from '@/types/auth'
 export interface IAuthService {
   login(credentials: LoginRequest): Promise<LoginResponse>;
   register(data: RegisterRequest): Promise<LoginResponse>;
+  loginWithGoogle(data: GoogleAuthRequest): Promise<LoginResponse>;
   logout(): Promise<void>;
   refreshToken(): Promise<LoginResponse>;
 }
@@ -36,6 +37,14 @@ export const authService: IAuthService = {
   async register(data: RegisterRequest): Promise<LoginResponse> {
     const response = await apiClient.post<LoginResponse>(
       API_ENDPOINTS.AUTH.REGISTER,
+      data
+    );
+    return response.data;
+  },
+
+  async loginWithGoogle(data: GoogleAuthRequest): Promise<LoginResponse> {
+    const response = await apiClient.post<LoginResponse>(
+      API_ENDPOINTS.AUTH.GOOGLE,
       data
     );
     return response.data;

@@ -37,6 +37,10 @@ export interface RegisterRequest {
   name: string;
 }
 
+export interface GoogleAuthRequest {
+  credential: string;
+}
+
 export interface AuthState {
   user: AuthUser | null;
   isLoading: boolean;

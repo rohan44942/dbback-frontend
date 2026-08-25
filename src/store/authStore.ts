@@ -22,6 +22,7 @@ interface AuthStore extends AuthState {
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: (credential: string) => Promise<void>;
   logout: () => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
   clearError: () => void;
@@ -84,6 +85,36 @@ export const useAuthStore = create<AuthStore>()(
           } catch (error) {
             const errorMessage =
               error instanceof Error ? error.message : 'Login failed';
+            set({
+              error: errorMessage,
+              isLoading: false,
+              isAuthenticated: false,
+            });
+            throw error;
+          }
+        },
+
+        loginWithGoogle: async (credential: string) => {
+          set({ isLoading: true, error: null });
+          try {
+            const response = await authService.loginWithGoogle({ credential });
+
+            localStorage.setItem('authToken', response.token);
+            setAuthCookie(response.token, response.expiresAt);
+
+            set({
+              user: {
+                ...response.user,
+                token: response.token,
+                expiresAt: response.expiresAt,
+              },
+              isAuthenticated: true,
+              isLoading: false,
+              error: null,
+            });
+          } catch (error) {
+            const errorMessage =
+              error instanceof Error ? error.message : 'Google sign-in failed';
             set({
               error: errorMessage,
               isLoading: false,

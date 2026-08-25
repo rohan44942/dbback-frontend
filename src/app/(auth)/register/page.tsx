@@ -4,12 +4,23 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { RegisterForm } from '@/components/auth/RegisterForm';
+import {
+  AuthDivider,
+  GoogleSignInButton,
+} from '@/components/auth/GoogleSignInButton';
 import { useAuth } from '@/hooks/useAuth';
 import type { RegisterFormData } from '@/lib/validators/auth';
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { register, isLoading, error, clearError, isAuthenticated } = useAuth();
+  const {
+    register,
+    loginWithGoogle,
+    isLoading,
+    error,
+    clearError,
+    isAuthenticated,
+  } = useAuth();
   const [localError, setLocalError] = useState<string | null>(null);
 
   React.useEffect(() => {
@@ -31,6 +42,19 @@ export default function RegisterPage() {
     }
   };
 
+  const handleGoogle = async (credential: string) => {
+    try {
+      setLocalError(null);
+      await loginWithGoogle(credential);
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : 'Google sign-in failed. Please try again.';
+      setLocalError(message);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
@@ -41,6 +65,13 @@ export default function RegisterPage() {
           <p className="text-center text-gray-600 mb-8">
             Create your backup management account
           </p>
+
+          <GoogleSignInButton
+            onSuccess={handleGoogle}
+            onError={setLocalError}
+            disabled={isLoading}
+          />
+          <AuthDivider />
 
           <RegisterForm
             onSubmit={handleRegister}
